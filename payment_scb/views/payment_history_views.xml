@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_scb_payment_log_tree" model="ir.ui.view">
+            <field name="name">scb.payment.log.tree</field>
+            <field name="model">scb.payment.log</field>
+            <field name="arch" type="xml">
+                <list string="SCB Audit Logs" create="false" edit="false">
+                    <field name="create_date" string="เวลาที่รับข้อมูล"/>
+                    <field name="name" string="Bank Ref"/>
+                    <field name="order_ref" string="Order Ref"/>
+                    <field name="amount" string="ยอดเงิน" sum="Total"/>
+                    <field name="state"
+                           widget="badge"
+                           decoration-success="state == 'processed'"
+                           decoration-danger="state == 'error'"/>
+                    <button name="action_view_raw_data"
+                            type="object"
+                            icon="fa-code"
+                            title="ดูข้อมูลดิบ"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="action_scb_payment_log_audit" model="ir.actions.act_window">
+            <field name="name">ประวัติรับชำระ (Audit Logs)</field>
+            <field name="res_model">scb.payment.log</field>
+            <field name="view_mode">list,form</field>
+            <field name="view_id" ref="view_scb_payment_log_tree"/>
+        </record>
+
+        <menuitem id="menu_scb_payment_root"
+                  name="SCB Payments"
+                  web_icon="payment_scb,static/description/icon.png"
+                  sequence="10"/>
+
+        <menuitem id="menu_scb_payment_history"
+                  name="ตรวจสอบประวัติโอนเงิน"
+                  parent="menu_scb_payment_root"
+                  action="action_scb_payment_log_audit"
+                  sequence="10"/>
+
+    </data>
+</odoo>

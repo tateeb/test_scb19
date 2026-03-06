@@ -1,0 +1,6 @@
+/* เจาะจงที่ตัว Element ที่แสดงผลรูปภาพ QR */
+.o_payment_method_image,
+img[src*="payment_scb"] {
+    max-width: 200px !important; /* ปรับขนาดตรงนี้ตามต้องการ */
+    height: auto !important;
+}

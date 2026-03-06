@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="scb_qr_checkout_page" name="SCB QR Page">
+        <t t-call="website.layout">
+            <style>
+                /* ตัวบัตรหลัก */
+                .thai-qr-scb-card {
+                    width: 4.2in;
+                    height: 6.5in;
+                    background-color: white;
+                    background-image: url('/payment_scb/static/thaiqr_assets/template.png');
+                    background-size: cover;
+                    background-position: center;
+                    position: relative;
+                    margin: 30px auto;
+                    box-shadow: 0 15px 35px rgba(78, 46, 127, 0.2);
+                    border-radius: 12px;
+                    overflow: hidden; /* ป้องกันเนื้อหาล้นขอบโค้ง */
+                }
+
+                /* 1. ปรับตำแหน่ง QR Code ลงมา */
+                .qr-container {
+                    position: absolute;
+                    top: 2.02in; /* ขยับลงมาจาก 1.85in */
+                    left: 0.5in;
+                    right: 0.5in;
+                    height: 3.1in;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .scb-qr-img {
+                    max-width: 100%;
+                    max-height: 100%;
+                    object-fit: contain;
+                }
+
+                /* 2. ปรับตัวหนังสือชื่อร้านและยอดเงินลงมา */
+                .info-overlay {
+                    position: absolute;
+                    bottom: 0.80in; /* ขยับลงมาให้เกือบชิดแถบสีม่วง */
+                    left: 0.45in;
+                    right: 0.45in;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-end;
+                    z-index: 10;
+                }
+
+                .m-name-th {
+                    font-size: 12pt; /* ปรับขนาดเล็กลงเล็กน้อย */
+                    font-weight: bold;
+                    color: #000;
+                    line-height: 1.1;
+                    text-transform: uppercase;
+                }
+
+                .amount-display {
+                    font-size: 16pt;
+                    font-weight: bold;
+                    color: #000;
+                    text-align: right;
+                }
+
+                /* 3. ส่วน Footer แถบสีม่วงด้านล่าง (ใส่กลับเข้ามา) */
+                .bank-footer-area {
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    height: 0.75in;
+                    background-color: #4e2e7f; /* สีม่วง SCB */
+                    display: flex;
+                    align-items: center;
+                    padding: 0 0.4in;
+                }
+
+                .bank-logo-box {
+                    background: white;
+                    padding: 4px;
+                    border-radius: 6px;
+                    width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+            </style>
+
+            <div class="thai-qr-scb-card shadow-lg">
+                <div t-if="qr_code and tx.state == 'pending'" class="qr-container">
+                    <img t-attf-src="data:image/png;base64,#{qr_code}" class="scb-qr-img" alt="SCB QR Code"/>
+                </div>
+
+                <div t-elif="error_msg or tx.state == 'cancel'" class="qr-container">
+                    <div class="alert alert-warning m-4 text-center" style="z-index: 100;">
+                        <i class="fa fa-exclamation-triangle d-block fs-2 mb-2"/>
+                        <t t-esc="error_msg or 'รายการนี้ถูกยกเลิกแล้ว'"/>
+                    </div>
+                </div>
+
+                <div class="info-overlay">
+                    <div style="max-width: 65%;">
+                        <div class="m-name-th">
+                            <t t-esc="tx.provider_id.scb_account_name or tx.company_id.name"/>
+                        </div>
+                        <div style="font-size: 10pt; color: #666; font-weight: 500;">
+                            <t t-esc="tx.scb_reference1"/>
+                        </div>
+                    </div>
+                    <div style="max-width: 35%;">
+                        <div class="amount-display">
+                            <t t-esc="'{0:,.2f}'.format(tx.amount)"/>
+                        </div>
+                        <div style="font-size: 7pt; text-align: right; font-weight: bold; color: #4e2e7f; margin-top: -3px;">
+                            บาท (BAHT)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bank-footer-area">
+                    <div class="bank-logo-box">
+                        <img src="/payment_scb/static/description/icon.png" style="max-height: 100%; max-width: 100%;"/>
+                    </div>
+                    <div class="ms-3 text-white">
+                        <div style="font-size: 9pt; font-weight: bold; line-height: 1.1;">SCB EASY</div>
+                        <div style="font-size: 7.2pt; opacity: 0.9;">สแกนง่าย จ่ายคล่อง ผ่านแอป SCB EASY</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <script type="text/javascript">
+                function pollPaymentStatus(transactionId, landingRoute) {
+                    const checkInterval = setInterval(async () => {
+                        try {
+                            // เรียกไปยัง Controller ที่คุณเขียนไว้
+                            const response = await fetch(`/payment/scb/status/${transactionId}`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    jsonrpc: "2.0",
+                                    params: {}
+                                })
+                            });
+
+                            const result = await response.json();
+                            const data = result.result; // Odoo JSON-RPC จะห่อหุ้มด้วยก้อน result
+
+                            if (data) {
+                                console.log("Current Payment State:", data.state);
+
+                                // 1. ถ้าสำเร็จ (Done / Authorized) -> Redirect ทันที
+                                if (data.is_done) {
+                                    clearInterval(checkInterval);
+                                    window.location.href = data.landing_route || landingRoute;
+                                }
+
+                                // 2. ถ้าถูกยกเลิก (Cancel) -> หยุดเช็คและแจ้งเตือน
+                                else if (data.is_cancel) {
+                                    clearInterval(checkInterval);
+                                    alert("รายการนี้ถูกยกเลิกหรือหมดเวลาแล้ว กรุณาลองใหม่อีกครั้ง");
+                                    window.location.reload();
+                                }
+                            }
+                        } catch (error) {
+                            console.error("Polling Error:", error);
+                        }
+                    }, 4000);
+                }
+                document.addEventListener('DOMContentLoaded', function() {
+                    var txId = "<t t-out='tx.id'/>";
+                    var landingRoute = "/payment/confirmation";
+                    pollPaymentStatus(txId, landingRoute);
+                });
+            </script>
+
+        </t>
+    </template>
+</odoo>

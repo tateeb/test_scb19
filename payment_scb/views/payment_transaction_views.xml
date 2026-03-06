@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payment_transaction_form_scb_qr" model="ir.ui.view">
+        <field name="name">payment.transaction.form.scb.qr</field>
+        <field name="model">payment.transaction</field>
+        <field name="inherit_id" ref="payment.payment_transaction_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='state_message']/.." position="replace">
+                <notebook>
+                    <page string="Message Status" name="message_status" invisible="not state_message">
+                        <group>
+                            <field name="state_message" colspan="2" nolabel="1"/>
+                        </group>
+                    </page>
+
+                    <page string="SCB API Logs" name="scb_api_logs"
+                          invisible="provider_code != 'scb'"
+                          groups="base.group_no_one">
+                        <field name="scb_log_ids" readonly="1">
+                            <list decoration-info="log_type == 'info'"
+                                  decoration-success="log_type == 'success'"
+                                  decoration-warning="log_type == 'warning'"
+                                  decoration-danger="log_type == 'error'">
+                                <field name="create_date" string="Time"/>
+                                <field name="message"/>
+                                <field name="log_type" widget="badge"/>
+                                <field name="payload" optional="hide"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>
