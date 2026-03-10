@@ -19,11 +19,16 @@ class PaymentProvider(models.Model):
     )
 
     # === SCB Credentials ===
-    scb_api_key = fields.Char(string='SCB API Key', required_if_provider='scb')
-    scb_api_secret = fields.Char(string='SCB API Secret', required_if_provider='scb')
-    scb_biller_id = fields.Char(string='SCB Biller ID', required_if_provider='scb')
-    scb_merchant_id = fields.Char(string='Merchant ID')
-    scb_terminal_id = fields.Char(string='Terminal ID')
+    scb_api_key = fields.Char(string='SCB API Key', required_if_provider='scb' , is_password='True')
+    scb_api_secret = fields.Char(string='SCB API Secret', required_if_provider='scb' , is_password='True')
+    scb_biller_id = fields.Char(string='SCB Biller ID', required_if_provider='scb' , is_password='True')
+    scb_merchant_id = fields.Char(string='Merchant ID' ,required_if_provider='scb' , is_password='True')
+    scb_terminal_id = fields.Char(string='Terminal ID' ,required_if_provider='scb' , is_password='True')
+    scb_callback_url = fields.Char(
+        string='Callback URL',
+        compute='_compute_scb_callback_url',
+        help="Endpoint URL designated for receiving asynchronous payment notifications (Webhooks) from SCB."
+    )
 
     # === Token cache ===
     scb_access_token = fields.Char(string='SCB Access Token', readonly=True, copy=False)
@@ -32,7 +37,7 @@ class PaymentProvider(models.Model):
     scb_environment = fields.Selection([
         ('sandbox', 'Sandbox'),
         ('production', 'Production')
-    ], string='Environment', default='sandbox', required=True)
+    ], string='Environment', default='Production', required=True)
 
     # === SCB Base URL Management (ปรับจากแบบ BBL ให้เป็น SCB) ===
     scb_base_url = fields.Char(
@@ -69,6 +74,14 @@ class PaymentProvider(models.Model):
                 rec.scb_oauth_url = False
                 rec.scb_api_url_qr = False
                 rec.scb_api_url_qr_inquiry = False
+
+    @api.depends('scb_environment')
+    def _compute_scb_callback_url(self):
+        """ คำนวณ URL โดยดึง Base URL ของ Odoo แล้วต่อท้ายด้วย Route ของเรา """
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        for rec in self:
+            # สมมติว่าคุณสร้าง Controller ไว้ที่ /payment/scb/webhook
+            rec.scb_callback_url = f"{base_url.rstrip('/')}/payment/scb/webhook"
 
     # ==========================
     # OAuth: Get SCB Access Token

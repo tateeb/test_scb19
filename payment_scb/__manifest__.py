@@ -1,8 +1,8 @@
 {
-    'name': 'SCB Promptpay Payment Gateway ',
+    'name': 'SCB Payment Gateway ',
     'version': '1.0',
     'category': 'Accounting/Payment',
-    'summary': 'SCB Promptpay Payment Gateway Plugin allows merchants to accept Promptpay Payment for SCB(Siam Commercial Bank)',
+    'summary': 'SCB Payment Gateway Plugin allows merchants to accept Promptpay Payment for SCB(Siam Commercial Bank)',
     'depends': ['base', 'payment', 'website_sale','account', 'sale'],
     'data': [
         'security/ir.model.access.csv',

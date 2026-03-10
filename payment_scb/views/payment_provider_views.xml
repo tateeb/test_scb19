@@ -8,33 +8,45 @@
             <xpath expr='//group[@name="provider_credentials"]' position='after'>
                 <group string="SCB Bank (Main Configuration)" invisible="code != 'scb'">
                     <group>
-                        <field name="scb_environment" widget="radio" options="{'horizontal': true}"/>
-                        <field name="scb_biller_id"/>
-                        <field name="scb_merchant_id"/>
-                        <field name="scb_terminal_id"/>
-                        <field name="scb_account_name"/>
+                        <field name="scb_environment" widget="radio" options="{'horizontal': true}" groups="base.group_no_one"/>
+                        <field name="scb_biller_id" password="True"/>
+                        <field name="scb_merchant_id" password="True"/>
+                        <field name="scb_terminal_id" password="True"/>
+                        <field name="scb_account_name" password="True"/>
                     </group>
                     <group>
-
-                        <field name="scb_api_key"/>
-                        <field name="scb_api_secret" is_password="True"/>
+                        <field name="scb_api_key" password="True"/>
+                        <field name="scb_api_secret" password="True"/>
+                        <field name="scb_callback_url"/>
                     </group>
                 </group>
 
-                <group string="Token Management" invisible="code != 'scb'" groups="base.group_system">
-                    <div colspan="2" class="d-flex align-items-center gap-2 mb-2">
+<!--                <group string="Token Management" invisible="code != 'scb'" groups="base.group_system">-->
+<!--                    <div colspan="2" class="d-flex align-items-center gap-2 mb-2">-->
 
-                        <button name="action_scb_get_access_token"
-                                type="object"
-                                string="Test Connection (Get Token)"
-                                class="btn-primary"
-                                icon="fa-refresh"/>
+<!--                        <button name="action_scb_get_access_token"-->
+<!--                                type="object"-->
+<!--                                string="Test Connection (Get Token)"-->
+<!--                                class="btn-primary"-->
+<!--                                icon="fa-refresh"/>-->
 
-                        <span class="text-muted" invisible="not scb_token_expired_at">
-                            Expires at: <field name="scb_token_expired_at" class="oe_inline"/>
-                        </span>
-                    </div>
-                    <field name="scb_access_token" readonly="1"/>
+<!--                        <span class="text-muted" invisible="not scb_token_expired_at">-->
+<!--                            Expires at: <field name="scb_token_expired_at" class="oe_inline"/>-->
+<!--                        </span>-->
+<!--                    </div>-->
+<!--                    <field name="scb_access_token" readonly="1"/>-->
+<!--                </group>-->
+
+                <group groups="base.group_system" invisible="code != 'scb'">
+                    <group string="Token Management">
+                        <div colspan="2" class="d-flex align-items-center gap-2 mb-2" groups="base.group_no_one">
+                            <button name="action_scb_get_access_token" type="object" string="Test Connection" class="btn-primary" icon="fa-refresh"/>
+                            <span class="text-muted" invisible="not scb_token_expired_at">
+                                Expires at: <field name="scb_token_expired_at" class="oe_inline"/>
+                            </span>
+                        </div>
+                        <field name="scb_access_token" readonly="1" password="True"/>
+                    </group>
                 </group>
             </xpath>
         </field>
