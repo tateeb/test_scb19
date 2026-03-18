@@ -37,7 +37,7 @@ class PaymentProvider(models.Model):
     scb_environment = fields.Selection([
         ('sandbox', 'Sandbox'),
         ('production', 'Production')
-    ], string='Environment', default='Production', required=True)
+    ], string='Environment', default='production', required=True)
 
     # === SCB Base URL Management (ปรับจากแบบ BBL ให้เป็น SCB) ===
     scb_base_url = fields.Char(

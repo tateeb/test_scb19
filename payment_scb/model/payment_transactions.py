@@ -127,10 +127,10 @@ class PaymentTransaction(models.Model):
                             so.action_confirm()
                 except Exception as e:
                     # ถ้า Confirm พัง (เช่น duplicate follower) ให้ Log ไว้แต่ไม่หยุดการทำงาน
-                    _logger.error(">>> SCB Confirm SO Error (Recovered): %s", str(e))
-                    # บันทึกลงใน Log ของ Transaction ด้วยเพื่อให้เรารู้ว่าต้องมาตามกดเอง
-                    # tx._message_log(body=f"Confirm SO {so.name} failed but payment is kept: {str(e)}")
-                    tx.message_post(body=f"Confirm SO {so.name} failed but payment is kept: {str(e)}")
+                    _logger.warning("Confirm SO %s failed: %s", so.name, e)
+                    # หากต้องการบันทึกลงในระบบ Odoo ให้ตรวจสอบก่อนว่าเรียกใช้ได้ไหม
+                    if hasattr(tx, 'message_post'):
+                        tx.message_post(body=f"Confirm SO {so.name} failed: {str(e)}")
 
     def _reconcile_after_done(self):
         """
